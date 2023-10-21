@@ -235,3 +235,60 @@ spec:
               number: 80
         path: /
         pathType: Prefix
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: homelab
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destinations:
+    - name: "*"
+      namespace: "*"
+      server: "*"
+  sourceRepos:
+    - "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: homelab-manifest
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/mattkgwhite/arm-ops.git
+        revision: HEAD
+        files:
+          - path: manifest/*.yaml
+  template:
+    metadata:
+      name: '{{ normalize .path.filename }}'
+    spec:
+      project: homelab
+      source:
+        repoURL: https://github.com/mattkgwhite/arm-ops.git
+        path: '{{ .path.path }}'
+        plugin:
+          name: avp-directory-include
+          env:
+            - name: FILE_NAME
+              value: '{{ .path.filename }}'
+        targetRevision: HEAD
+      destination:
+        server: "https://kubernetes.default.svc"
+        namespace: '{{ trimSuffix (ext ".yaml") (base .path.filename) }}'
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: true
+---
