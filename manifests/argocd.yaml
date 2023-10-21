@@ -85,7 +85,7 @@ spec:
           cm:
             resource.compareoptions: |
               ignoreAggregatedRoles: true
-            url: "https://argocd.<path:stringreplacesecret#domain2>"
+            url: "https://argocd.robotwizard.co.uk"
             dex.config: |
               connectors:
                 - type: oidc
@@ -291,4 +291,3 @@ spec:
           prune: true
           selfHeal: true
           allowEmpty: true
----
